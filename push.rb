@@ -60,7 +60,6 @@ if pool.length > 1
 end
 
 updateinfo = { worker_user_name: worker_user_name, hashrate: hashrate, accepted: accepted, rejected: rejected, hw_errors: hw_errors, num_gpu: gpucount, pool1name: pool1name, pool1active: pool1active, pool1mining: pool1mining }
-puts updateinfo
 if pool2 != nil
     updateinfo[:pool2name] = pool2name
     updateinfo[:pool2active] = pool2active
@@ -68,7 +67,5 @@ if pool2 != nil
 end
 path = "/workers/update"
 host = "https://miningmonitor.herokuapp.com"
-
-puts "sending data to #{host}#{path}"
 
 puts RestClient.put "#{host}#{path}", updateinfo, {:content_type => :json} 
