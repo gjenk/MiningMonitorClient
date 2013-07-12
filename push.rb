@@ -17,15 +17,22 @@ s = TCPSocket.new '192.168.1.100', 4028
 s.puts '{"command":"summary"}'
 summary_query = s.gets
 
-
-s = TCPSocket.new '192.168.1.100', 4028
-s.puts '{"command":"gpucount"}'
-gpucount_query = s.gets
-
-
 s = TCPSocket.new '192.168.1.100', 4028
 s.puts '{"command":"pools"}'
 pools_query = s.gets
+
+s = TCPSocket.new '192.168.1.100', 4028
+s.puts '{"command": "devs"}'
+dev_query = s.gets
+dev_query.strip!
+
+parsed = JSON.parse dev_query
+devs = parsed["DEVS"]
+gpuinfo = []
+devs.length.times do |n|
+   gpuinfo << devs[n]["Temperature"]
+   gpuinfo << devs[n]["MHS 5s"]
+end
 
 summary_query.strip! 
 parsed = JSON.parse(summary_query)
@@ -36,16 +43,11 @@ accepted = summary["Accepted"]
 rejected = summary["Rejected"]
 hw_errors = summary["Hardware Errors"]
 
-
-gpucount_query.strip!
-parsed = JSON.parse(gpucount_query)
-gpucount = parsed["GPUS"]
-gpucount = gpucount[0]
-gpucount = gpucount["Count"]
-
 pools_query.strip!
 parsed = JSON.parse(pools_query)
 pool = parsed["POOLS"]
+
+gpucount = gpuinfo.length/2
 
 pool1 = pool[0]
 pool1active = (pool1["Status"] == "Alive")
@@ -59,7 +61,7 @@ if pool.length > 1
     pool2mining = pool2["Stratum Active"] 
 end
 
-updateinfo = { worker_user_name: worker_user_name, hashrate: hashrate, accepted: accepted, rejected: rejected, hw_errors: hw_errors, num_gpu: gpucount, pool1name: pool1name, pool1active: pool1active, pool1mining: pool1mining }
+updateinfo = { worker_user_name: worker_user_name, hashrate: hashrate, accepted: accepted, rejected: rejected, hw_errors: hw_errors, num_gpu: gpucount, pool1name: pool1name, pool1active: pool1active, pool1mining: pool1mining, gpus: gpuinfo }
 puts updateinfo
 if pool2 != nil
     updateinfo[:pool2name] = pool2name
